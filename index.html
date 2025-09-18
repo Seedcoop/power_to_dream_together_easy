@@ -288,7 +288,6 @@ let show = false, line = false, pred = null;
 
       // 범위
       let xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
-      if(pred){ xs.push(pred.x); ys.push(pred.y); }
       let minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys);
       const padX=(maxX-minX||10)*0.1, padY=(maxY-minY||10)*0.1;
       minX-=padX; maxX+=padX; minY-=padY; maxY+=padY;
