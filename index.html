@@ -52,7 +52,38 @@
           <button id="showBtn" class="btn btn-gray btn-full" onclick="togglePoints()">점 찍기</button>
           <button id="lineBtn" class="btn btn-gray btn-full" onclick="toggleLine()" disabled>대표선 알아보기</button>
           <button id="sampleBtn" class="btn btn-ghost btn-full" onclick="loadSample()">샘플 불러오기</button>
-          <button class="btn btn-ghost btn-full" onclick="clearAll()">전체 지우기</button>
+         <button class="btn btn-ghost btn-full" onclick="clearAll()">전체 지우기</button>
+<script>
+  function clearAll(){
+    // 5칸 빈 입력으로 초기화
+    points = [
+      {id:1,x:'',y:''},
+      {id:2,x:'',y:''},
+      {id:3,x:'',y:''},
+      {id:4,x:'',y:''},
+      {id:5,x:'',y:''}
+    ];
+    show = false;   // 점 숨김
+    line = false;   // 선 숨김
+    pred = null;    // 예측 초기화
+
+    // 예측 UI/결과 숨기기(있을 경우)
+    var predictSection = document.getElementById('predictSection');
+    if (predictSection) predictSection.classList.add('hidden');
+    var predictBox = document.getElementById('predictBox');
+    if (predictBox) predictBox.style.display = 'none';
+    var predictResult = document.getElementById('predictResult');
+    if (predictResult) { predictResult.textContent = ''; predictResult.classList.add('hidden'); predictResult.style.display='none'; }
+
+    // 각 버전의 렌더/버튼/그래프 갱신 함수 호출 (있는 것만 호출)
+    if (typeof renderRows === 'function') renderRows();
+    if (typeof render === 'function') render();
+    if (typeof setBtnStates === 'function') setBtnStates();
+    if (typeof updateButtons === 'function') updateButtons();
+    if (typeof draw === 'function') draw();
+    if (typeof updateGraph === 'function') updateGraph();
+  }
+</script>
         </div>
 
         <div style="margin-top:18px">
