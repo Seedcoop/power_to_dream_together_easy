@@ -253,17 +253,6 @@ let show = false, line = false, pred = null;
       const x = parseFloat(document.getElementById('predictX').value);
       if(isNaN(x)){ alert('기온(℃)을 숫자로 입력해 주세요.'); return; }
 
-      // 관측 범위 체크
-      const xs = pts.map(p=>p.x);
-      const minObs = Math.min(...xs), maxObs = Math.max(...xs);
-      rangeText.textContent = `${minObs} ~ ${maxObs}`;
-      if (x < minObs || x > maxObs) {
-        warn.style.display='block';
-        return;
-      } else {
-        warn.style.display='none';
-      }
-
       // 예측 및 음수 절삭
       let y = t.a * x + t.b;
       if (y < 0) y = 0;
