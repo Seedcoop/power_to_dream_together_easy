@@ -90,21 +90,15 @@
 
   <script>
     // ----- 상태 -----
-    // 기본 샘플(주신 데이터): (온도℃, 전력 GWh)
-    let points = [
-      {id:1,x:'29',y:'22'},
-      {id:2,x:'30',y:'24'},
-      {id:3,x:'28',y:'20'},
-      {id:4,x:'27',y:'18'},
-      {id:5,x:'26',y:'16'}
-    ];
-    let show = false, line = false, pred = null;
+// 처음에는 비어 있는 입력칸만 하나
+let points = [
+  {id:1, x:'', y:''}
+];
+let show = false, line = false, pred = null;
 
     // ----- 초기 렌더 -----
     document.addEventListener('DOMContentLoaded', ()=>{
       renderRows();
-      // 기본 샘플은 미리 보여줘도 좋음
-      show = true; line = true;
       setBtnStates(); draw();
     });
 
