@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>숫자→점→그림: 전력 예측 놀이터</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,sans-serif;background:#f7fafc;color:#1f2937}
+    .container{max-width:1200px;margin:0 auto;padding:24px}
+    h1{font-size:28px;font-weight:800;text-align:center;margin-bottom:16px}
+    .sub{color:#6b7280;text-align:center;margin-bottom:28px}
+    .grid{display:grid;gap:24px;grid-template-columns:1fr}
+    @media(min-width:1024px){.grid{grid-template-columns:420px 1fr}}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px}
+    .row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+    .btn{border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer}
+    .btn-gray{background:#e5e7eb}
+    .btn-blue{background:#2563eb;color:#fff}
+    .btn-ghost{background:#eef2ff;color:#3730a3}
+    .btn-full{width:100%}
+    .small{font-size:12px;color:#6b7280}
+    input[type=number]{width:90px;padding:8px;border:1px solid #d1d5db;border-radius:8px}
+    input[type=number]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 1px #2563eb}
+    .trash{background:transparent;border:0;font-size:18px;cursor:pointer;color:#ef4444}
+    .legend{display:flex;gap:16px;justify-content:center;margin-top:10px}
+    .dot{width:14px;height:14px;border-radius:50%}
+    .line{width:20px;height:4px;border-radius:2px}
+    .empty{display:flex;align-items:center;justify-content:center;height:420px;border:2px dashed #d1d5db;border-radius:12px;color:#6b7280}
+    .svg{background:#fff;border:1px solid #e5e7eb;border-radius:12px}
+    .result{margin-top:10px;padding:12px;border-radius:10px;background:#ecfeff;border:1px solid #a5f3fc;color:#0e7490;font-weight:800}
+    .section-title{font-size:18px;font-weight:800;margin-bottom:8px}
+    .muted{color:#6b7280}
+    .pill{display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:999px;padding:6px 10px;font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>숫자 넣고 점 찍어 <span style="white-space:nowrap">그림으로 예측하기</span> ⚡</h1>
+    <p class="sub">x=🌡️ <b>기온(℃)</b>, y=⚡ <b>전력량(kWh)</b> — 점만 찍어도 패턴이 보여요!</p>
+
+    <div class="grid">
+      <!-- 왼쪽: 입력/버튼 -->
+      <div class="card">
+        <div class="section-title">숫자 넣기</div>
+        <p class="small" style="margin-bottom:10px">예: (기온, 전력) → (25, 520)</p>
+        <div id="rows"></div>
+        <button class="btn btn-ghost" onclick="addRow()">➕ 줄 추가</button>
+
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
+          <button id="showBtn" class="btn btn-gray btn-full" onclick="togglePoints()">점 찍기</button>
+          <button id="lineBtn" class="btn btn-gray btn-full" onclick="toggleLine()" disabled>그림 그리기(대표선)</button>
+          <button id="sampleBtn" class="btn btn-ghost btn-full" onclick="loadSample()">샘플 불러오기</button>
+        </div>
+
+        <div style="margin-top:18px">
+          <div class="section-title">예측하기</div>
+          <p class="small muted" style="margin-bottom:8px">🟦 점을 먼저 찍고, 대표선을 그린 뒤 사용하세요.</p>
+          <div class="row">
+            <span class="pill">🌡️ 내일 기온(℃)</span>
+            <input type="number" id="predictX" placeholder="예: 33" />
+            <button class="btn btn-blue" onclick="predict()">예측하기</button>
+          </div>
+          <div id="result" class="result" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- 오른쪽: 그래프 -->
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:6px">
+          <div class="section-title">그림</div>
+          <div class="row small muted">
+            <span class="pill">X축 🌡️ 기온(℃)</span>
+            <span class="pill">Y축 ⚡ 전력(kWh)</span>
+          </div>
+        </div>
+        <div id="blank" class="empty">숫자를 넣고 <b>점 찍기</b>를 눌러 보세요</div>
+        <svg id="svg" class="svg" width="640" height="420" style="display:none"></svg>
+
+        <div class="legend">
+          <div class="row small"><span class="dot" style="background:#2563eb"></span>입력 점</div>
+          <div class="row small"><span class="line" style="background:#dc2626"></span>대표선</div>
+          <div class="row small"><span class="dot" style="background:#16a34a"></span>예측 점</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ----- 상태 -----
+    let points = [
+      {id:1,x:'',y:''},{id:2,x:'',y:''},{id:3,x:'',y:''},{id:4,x:'',y:''},{id:5,x:'',y:''}
+    ];
+    let show = false, line = false, pred = null;
+
+    // ----- 초기 렌더 -----
+    document.addEventListener('DOMContentLoaded', renderRows);
+
+    function renderRows(){
+      const box = document.getElementById('rows');
+      box.innerHTML = '';
+      points.forEach(p=>{
+        const div = document.createElement('div');
+        div.className='row';
+        div.innerHTML = `
+          <span class="pill">#${p.id}</span>
+          <span class="pill">🌡️</span>
+          <input type="number" placeholder="x(℃)" value="${p.x}"
+            oninput="updatePoint(${p.id},'x',this.value)"/>
+          <span class="pill">⚡</span>
+          <input type="number" placeholder="y(kWh)" value="${p.y}"
+            oninput="updatePoint(${p.id},'y',this.value)"/>
+          ${points.length>1?`<button class="trash" title="삭제" onclick="removeRow(${p.id})">🗑️</button>`:''}
+        `;
+        box.appendChild(div);
+      });
+    }
+
+    function addRow(){
+      const next = points.length? Math.max(...points.map(p=>p.id))+1 : 1;
+      points.push({id:next,x:'',y:''});
+      renderRows(); draw();
+    }
+    function removeRow(id){
+      if(points.length<=1) return;
+      points = points.filter(p=>p.id!==id);
+      renderRows(); draw();
+    }
+    function updatePoint(id,key,val){
+      const pt = points.find(p=>p.id===id);
+      if(pt){ pt[key]=val; draw(); }
+    }
+
+    function valid(){
+      return points
+        .filter(p=>p.x!==''&&p.y!==''&&!isNaN(p.x)&&!isNaN(p.y))
+        .map(p=>({x:parseFloat(p.x),y:parseFloat(p.y)}));
+    }
+
+    // ----- 버튼 -----
+    function setBtnStates(){
+      const showBtn = document.getElementById('showBtn');
+      const lineBtn = document.getElementById('lineBtn');
+      showBtn.className = 'btn '+(show?'btn-blue':'btn-gray')+' btn-full';
+      if(!show){ line=false; pred=null; }
+      const ok = valid().length>=2 && show;
+      lineBtn.disabled = !ok;
+      lineBtn.className = 'btn '+(ok?(line?'btn-blue':'btn-gray'):'btn-gray')+' btn-full';
+    }
+    function togglePoints(){ show=!show; setBtnStates(); draw(); }
+    function toggleLine(){
+      if(valid().length<2){ alert('점이 2개 이상 필요해요.'); return; }
+      line=!line; setBtnStates(); draw();
+    }
+
+    // ----- 샘플 데이터 -----
+    function loadSample(){
+      // (기온, 전력) — 초등 눈높이용 간단 샘플 3종
+      const sets = [
+        [{id:1,x:'25',y:'500'},{id:2,x:'27',y:'540'},{id:3,x:'29',y:'580'},{id:4,x:'30',y:'610'},{id:5,x:'26',y:'520'}],
+        [{id:1,x:'20',y:'400'},{id:2,x:'22',y:'430'},{id:3,x:'24',y:'470'},{id:4,x:'25',y:'490'},{id:5,x:'28',y:'560'}],
+        [{id:1,x:'23',y:'450'},{id:2,x:'26',y:'520'},{id:3,x:'30',y:'610'},{id:4,x:'27',y:'550'},{id:5,x:'25',y:'500'}],
+      ];
+      points = sets[Math.floor(Math.random()*sets.length)];
+      renderRows();
+      show = true; line = true; pred=null; setBtnStates(); draw();
+    }
+
+    // ----- 회귀선(y=ax+b) -----
+    function trend(pts){
+      if(pts.length<2) return null;
+      const n=pts.length;
+      const sx=pts.reduce((s,p)=>s+p.x,0);
+      const sy=pts.reduce((s,p)=>s+p.y,0);
+      const sxx=pts.reduce((s,p)=>s+p.x*p.x,0);
+      const sxy=pts.reduce((s,p)=>s+p.x*p.y,0);
+      const a=(n*sxy - sx*sy)/(n*sxx - sx*sx);
+      const b=(sy - a*sx)/n;
+      return {a,b};
+    }
+
+    // ----- 예측 -----
+    function predict(){
+      const pts = valid();
+      if(!show || !line){ alert('먼저 점을 찍고, 대표선을 그려 주세요.'); return; }
+      if(pts.length<2){ alert('점이 2개 이상 필요해요.'); return; }
+      const t = trend(pts); if(!t) return;
+      const x = parseFloat(document.getElementById('predictX').value);
+      if(isNaN(x)){ alert('기온(℃)을 숫자로 입력해 주세요.'); return; }
+      const y = t.a * x + t.b;
+      pred = {x,y};
+      const res = document.getElementById('result');
+      res.style.display='block';
+      res.textContent = `예측 결과: 🌡️ ${x.toFixed(1)}℃ → ⚡ ${y.toFixed(0)} kWh`;
+      draw();
+    }
+
+    // ----- 그래프 -----
+    function draw(){
+      setBtnStates();
+      const svg = document.getElementById('svg');
+      const blank = document.getElementById('blank');
+      const pts = valid();
+      if(!show || pts.length===0){ svg.style.display='none'; blank.style.display='flex'; return; }
+      svg.style.display='block'; blank.style.display='none';
+      const W=640,H=420,P=56;
+      svg.innerHTML='';
+
+      // 범위
+      let xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
+      if(pred){ xs.push(pred.x); ys.push(pred.y); }
+      let minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys);
+      const padX=(maxX-minX||10)*0.1, padY=(maxY-minY||10)*0.1;
+      minX-=padX; maxX+=padX; minY-=padY; maxY+=padY;
+      const toX=x=> P + (x-minX)/(maxX-minX)*(W-2*P);
+      const toY=y=> H-P - (y-minY)/(maxY-minY)*(H-2*P);
+
+      // 격자+축
+      for(let i=0;i<=10;i++){
+        const gx = P + i/10*(W-2*P);
+        const gy = P + i/10*(H-2*P);
+        lineEl(gx,P,gx,H-P,'#e5e7eb',1);
+        lineEl(P,gy,W-P,gy,'#e5e7eb',1);
+      }
+      lineEl(P,P,P,H-P,'#374151',2);
+      lineEl(P,H-P,W-P,H-P,'#374151',2);
+
+      // 레이블
+      for(let i=0;i<=5;i++){
+        const vx = minX + i/5*(maxX-minX);
+        textEl(toX(vx), H-P+22, vx.toFixed(1), 'middle', 12, '#6b7280');
+        const vy = minY + i/5*(maxY-minY);
+        textEl(P-10, toY(vy)+4, vy.toFixed(1), 'end', 12, '#6b7280');
+      }
+      textEl(W/2, H-8, '🌡️ 기온(℃)', 'middle', 14, '#111827', true);
+      textEl(18, H/2, '⚡ 전력(kWh)', 'middle', 14, '#111827', true, -90);
+
+      // 대표선
+      if(line && pts.length>=2){
+        const t=trend(pts);
+        const y1=t.a*minX+t.b, y2=t.a*maxX+t.b;
+        lineEl(toX(minX),toY(y1),toX(maxX),toY(y2),'#dc2626',2.2);
+      }
+
+      // 점
+      pts.forEach(p=>{
+        circleEl(toX(p.x),toY(p.y),6,'#2563eb');
+        textEl(toX(p.x),toY(p.y)-12,`(${p.x}, ${p.y})`,'middle',10,'#374151',true);
+      });
+
+      // 예측 점
+      if(pred){
+        circleEl(toX(pred.x),toY(pred.y),7,'#16a34a');
+        textEl(toX(pred.x),toY(pred.y)-14,`예측: ${pred.y.toFixed(0)} kWh`,'middle',12,'#16a34a',true);
+      }
+
+      // SVG 도우미
+      function lineEl(x1,y1,x2,y2,color,w){
+        const el=document.createElementNS('http://www.w3.org/2000/svg','line');
+        el.setAttribute('x1',x1); el.setAttribute('y1',y1);
+        el.setAttribute('x2',x2); el.setAttribute('y2',y2);
+        el.setAttribute('stroke',color); el.setAttribute('stroke-width',w);
+        svg.appendChild(el);
+      }
+      function circleEl(cx,cy,r,fill){
+        const el=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        el.setAttribute('cx',cx); el.setAttribute('cy',cy);
+        el.setAttribute('r',r); el.setAttribute('fill',fill);
+        svg.appendChild(el);
+      }
+      function textEl(x,y,t,anchor,size,color,bold=false,rot=0){
+        const el=document.createElementNS('http://www.w3.org/2000/svg','text');
+        el.setAttribute('x',x); el.setAttribute('y',y);
+        el.setAttribute('text-anchor',anchor);
+        el.setAttribute('font-size',size);
+        el.setAttribute('fill',color);
+        if(bold) el.setAttribute('font-weight','700');
+        if(rot) el.setAttribute('transform',`rotate(${rot} ${x} ${y})`);
+        el.textContent=t;
+        svg.appendChild(el);
+      }
+    }
+  </script>
+</body>
+</html>
