@@ -52,6 +52,7 @@
           <button id="showBtn" class="btn btn-gray btn-full" onclick="togglePoints()">점 찍기</button>
           <button id="lineBtn" class="btn btn-gray btn-full" onclick="toggleLine()" disabled>대표선 알아보기</button>
           <button id="sampleBtn" class="btn btn-ghost btn-full" onclick="loadSample()">샘플 불러오기</button>
+          <button class="btn btn-ghost btn-full" onclick="clearAll()">전체 지우기</button>
         </div>
 
         <div style="margin-top:18px">
@@ -92,7 +93,11 @@
     // ----- 상태 -----
 // 처음에는 비어 있는 입력칸만 하나
 let points = [
-  {id:1, x:'', y:''}
+  {id:1, x:'', y:''},
+  {id:2, x:'', y:''},
+  {id:3, x:'', y:''},
+  {id:4, x:'', y:''},
+  {id:5, x:'', y:''}
 ];
 let show = false, line = false, pred = null;
 
