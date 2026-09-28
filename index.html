@@ -105,6 +105,48 @@ h1{text-align:left;font-size:calc(25px + 4px);letter-spacing:-.8px;margin:0 0 6p
 .prediction input{min-width:90px}
 @media(max-width:480px){.hero{min-height:290px}.hero p{max-width:calc(100% - 60px)}.predict-input-group{flex-wrap:wrap}.radio-group{flex-wrap:wrap}}
 </style>
+<style id="compact-easy-layout">
+/* Keep the large type; reclaim space through layout and spacing. */
+@media(min-width:1000px){
+  .container{max-width:1480px;padding:8px 22px 4px}
+  .hero{min-height:0;padding:14px 24px;margin-bottom:12px;border-radius:20px}
+  .hero-copy{max-width:calc(100% - 140px);display:grid;grid-template-columns:auto 1fr;column-gap:22px;align-items:center}
+  .eyebrow{grid-column:1/-1;justify-self:start;padding:2px 10px}
+  .brand{margin:6px 0;line-height:1.12;white-space:nowrap}
+  .hero h1{margin:0;line-height:1.35}
+  .hero p{grid-column:1/-1;margin:0}
+  .hero-mascot{width:118px;right:24px;bottom:-14px}
+  .grid{grid-template-columns:minmax(390px,.85fr) minmax(0,1.15fr);gap:16px;align-items:stretch}
+  .card{padding:15px 18px;border-radius:18px}
+  .section-title{margin-bottom:5px}
+  #rows .row{margin-bottom:7px}
+  #rows input{padding:7px 8px}
+  .add-row{min-height:34px;padding:5px 10px}
+  .actions{grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;padding-top:12px}
+  .actions .btn{min-height:46px;padding:6px 10px}
+  .actions #sampleBtn,.actions .reset-btn{min-height:34px;padding:5px 10px}
+  .graph-heading{flex-wrap:nowrap;margin-bottom:4px!important}
+  .graph-heading>.row{margin-bottom:0}
+  .empty,.svg{height:clamp(180px,calc(100dvh - 530px),340px);aspect-ratio:auto;width:100%}
+  .empty>div{padding:10px}.empty-symbol{margin-bottom:8px;width:42px;height:42px}
+  .legend{margin-top:8px;gap:18px}
+  .prediction{margin-top:10px!important;padding-top:10px}
+  .prediction .section-title{display:none}
+  .prediction .row{flex-wrap:nowrap;margin-bottom:0}
+  .prediction input{padding:8px;min-width:80px}
+  .prediction .btn{white-space:nowrap;min-height:42px;padding:5px 12px}
+  .result{margin-top:7px;padding:5px 10px;line-height:1.5}
+  .graph-tip{margin-top:9px;padding:7px 10px;line-height:1.4}
+  .graph-tip strong{display:inline;margin-right:8px}.graph-tip br{display:none}
+  .footer{margin-top:8px;line-height:1.3}
+}
+@media(min-width:1000px) and (max-width:1250px){
+  .hero-copy{display:block}.eyebrow{float:left;margin-right:16px}
+  .brand{white-space:normal;margin:0 0 5px}
+  .hero h1{display:inline-block;margin-right:14px}.hero p{display:inline}
+  .graph-heading{flex-wrap:wrap}.graph-heading>.row{margin-bottom:3px}
+}
+</style>
 </head>
 <body>
   <div class="container">
@@ -160,17 +202,7 @@ h1{text-align:left;font-size:calc(25px + 4px);letter-spacing:-.8px;margin:0 0 6p
 </script>
         </div>
 
-        <div class="prediction" style="margin-top:18px">
-          <div class="section-title">예측하기</div>
-          <p class="small muted" style="margin-bottom:8px">🟦 점을 먼저 찍고, 대표선을 그린 뒤 사용하세요.</p>
-          <div class="row">
-            <span class="pill">🌡️ 내일 기온(℃)</span>
-            <input type="number" aria-label="내일 기온" id="predictX" placeholder="예: 33" />
-            <button class="btn btn-blue" onclick="predict()"><span class="step-number">3</span><span>예측하기</span></button>
-          </div>
-          <div id="rangeWarn" class="warn">관측 범위 안에서만 예측해요! (현재 범위: <span id="rangeText"></span>℃)</div>
-          <div id="result" class="result" style="display:none"></div>
-        </div>
+
       </div>
 
       <!-- 오른쪽: 그래프 -->
@@ -190,6 +222,17 @@ h1{text-align:left;font-size:calc(25px + 4px);letter-spacing:-.8px;margin:0 0 6p
           <div class="row small"><span class="line" style="background:#dc2626"></span>대표선</div>
           <div class="row small"><span class="dot" style="background:#16a34a"></span>예측 점</div>
         </div>
+        <div class="prediction" style="margin-top:18px">
+          <div class="section-title">예측하기</div>
+          <p class="small muted" style="margin-bottom:8px">🟦 점을 먼저 찍고, 대표선을 그린 뒤 사용하세요.</p>
+          <div class="row">
+            <span class="pill">🌡️ 내일 기온(℃)</span>
+            <input type="number" aria-label="내일 기온" id="predictX" placeholder="예: 33" />
+            <button class="btn btn-blue" onclick="predict()"><span class="step-number">3</span><span>예측하기</span></button>
+          </div>
+          <div id="rangeWarn" class="warn">관측 범위 안에서만 예측해요! (현재 범위: <span id="rangeText"></span>℃)</div>
+          <div id="result" class="result" style="display:none"></div>
+        </div>
         <div class="graph-tip"><strong>함께 생각해 봐요!</strong>더운 날에는 전기를 더 많이 쓸까요?<br>대표선을 따라가며 기온과 전력량의 관계를 찾아보세요.</div>
       </div>
     </div>
@@ -197,7 +240,7 @@ h1{text-align:left;font-size:calc(25px + 4px);letter-spacing:-.8px;margin:0 0 6p
   </div>
 
   <script>
-    // ----- 상태 -----
+    window.addEventListener('resize', () => draw()); // ----- 상태 -----
 // 처음에는 비어 있는 입력칸만 하나
 let points = [
   {id:1, x:'', y:''},
@@ -349,7 +392,7 @@ let show = false, line = false, pred = null;
       const pts = valid();
       if(!show || pts.length===0){ svg.style.display='none'; blank.style.display='flex'; return; }
       svg.style.display='block'; blank.style.display='none';
-      const W=640,H=420,P=56;
+      const W=svg.clientWidth||640,H=svg.clientHeight||420,P=40; svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
       svg.innerHTML='';
 
       // 범위
@@ -371,14 +414,15 @@ let show = false, line = false, pred = null;
       lineEl(P,H-P,W-P,H-P,'#374151',2);
 
       // 레이블
-      for(let i=0;i<=5;i++){
-        const vx = minX + i/5*(maxX-minX);
+      const tickCount = H < 260 ? 3 : 5;
+      for(let i=0;i<=tickCount;i++){
+        const vx = minX + i/tickCount*(maxX-minX);
         textEl(toX(vx), H-P+22, vx.toFixed(1), 'middle', 12, '#6b7280');
-        const vy = minY + i/5*(maxY-minY);
+        const vy = minY + i/tickCount*(maxY-minY);
         textEl(P-10, toY(vy)+4, vy.toFixed(1), 'end', 12, '#6b7280');
       }
-      textEl(W/2, H-8, '🌡️ 기온(℃)', 'middle', 14, '#111827', true);
-      textEl(18, H/2, '⚡ 전력(GWh)', 'middle', 14, '#111827', true, -90);
+      // Axis units are displayed in the graph header.
+      
 
       // 대표선
       if(line && pts.length>=2){
@@ -400,7 +444,7 @@ let show = false, line = false, pred = null;
       // 예측 점
       if(pred){
         circleEl(toX(pred.x),toY(pred.y),7,'#16a34a');
-        textEl(toX(pred.x),toY(pred.y)-14,`예측: ${pred.y.toFixed(1)} GWh`,'middle',12,'#16a34a',true);
+        textEl(toX(pred.x),toY(pred.y)+23,`예측: ${pred.y.toFixed(1)} GWh`,'middle',12,'#16a34a',true);
       }
 
       // SVG 도우미
